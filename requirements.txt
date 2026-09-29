@@ -1,0 +1,12 @@
+fastapi>=0.115,<1
+uvicorn[standard]>=0.30,<1
+pydantic>=2.7,<3
+python-dotenv>=1.0,<2
+requests>=2.32,<3
+pypdf>=5.0,<6
+langgraph>=0.6,<2
+langchain-text-splitters>=0.3,<2
+openai>=1.50,<3
+pinecone>=7,<8
+pytest>=8,<9
+httpx>=0.27,<1

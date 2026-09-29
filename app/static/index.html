@@ -1,0 +1,674 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f3f1e9">
+  <title>Fieldnotes | Agentic AI</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --paper: #f3f1e9;
+      --surface: #fbfaf6;
+      --ink: #192923;
+      --muted: #64716b;
+      --line: #d9ddd5;
+      --green: #315d47;
+      --green-wash: #e5ede5;
+      --coral: #bb513d;
+      --gold: #d4a653;
+      --error: #a83d32;
+      --shadow: 0 16px 40px rgba(33, 52, 42, .08);
+      font-family: "Aptos", "Segoe UI", sans-serif;
+      color: var(--ink);
+      background: var(--paper);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-width: 320px;
+      min-height: 100vh;
+      background-color: var(--paper);
+      background-image: linear-gradient(rgba(49, 93, 71, .035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(49, 93, 71, .035) 1px, transparent 1px);
+      background-size: 28px 28px;
+    }
+
+    button, input { font: inherit; }
+
+    button:focus-visible, input:focus-visible, a:focus-visible {
+      outline: 3px solid rgba(187, 81, 61, .42);
+      outline-offset: 3px;
+    }
+
+    .topbar {
+      height: 68px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      padding: 0 34px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(251, 250, 246, .88);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: var(--ink);
+      text-decoration: none;
+    }
+
+    .brand-mark {
+      display: grid;
+      place-items: center;
+      width: 32px;
+      height: 32px;
+      background: var(--green);
+      color: #fffdf7;
+      font-family: Georgia, serif;
+      font-size: 17px;
+      border-radius: 3px;
+    }
+
+    .brand-name { font-size: 14px; font-weight: 700; }
+    .brand-subtitle { margin-left: 9px; color: var(--muted); font-size: 13px; }
+
+    .connection {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .connection-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--gold);
+    }
+
+    .connection[data-state="online"] .connection-dot { background: var(--green); }
+    .connection[data-state="offline"] .connection-dot { background: var(--error); }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: 286px minmax(0, 1fr);
+      min-height: calc(100vh - 68px);
+    }
+
+    .sidebar {
+      padding: 32px 24px 24px;
+      border-right: 1px solid var(--line);
+      background: rgba(243, 241, 233, .9);
+    }
+
+    .eyebrow {
+      margin: 0 0 13px;
+      color: var(--green);
+      font-size: 11px;
+      font-weight: 750;
+      text-transform: uppercase;
+    }
+
+    .source-title {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 24px;
+      font-weight: 500;
+      line-height: 1.15;
+    }
+
+    .source-meta {
+      margin: 9px 0 23px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .source-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 11px;
+      padding: 14px 0;
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .file-mark {
+      display: grid;
+      place-items: center;
+      flex: 0 0 34px;
+      height: 40px;
+      border: 1px solid #cbd4c9;
+      background: var(--surface);
+      color: var(--green);
+      font-size: 10px;
+      font-weight: 750;
+      border-radius: 2px;
+    }
+
+    .source-row strong, .source-row span { display: block; }
+    .source-row strong { margin: 2px 0 5px; font-size: 13px; }
+    .source-row span { color: var(--muted); font-size: 12px; }
+
+    .index-button {
+      width: 100%;
+      min-height: 42px;
+      margin-top: 16px;
+      padding: 9px 12px;
+      border: 1px solid var(--green);
+      border-radius: 3px;
+      background: transparent;
+      color: var(--green);
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background-color .16s ease, color .16s ease;
+    }
+
+    .index-button:hover:not(:disabled) { background: var(--green); color: white; }
+    .index-button:disabled { cursor: wait; opacity: .6; }
+
+    .index-note {
+      margin: 10px 0 0;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.5;
+    }
+
+    .index-status {
+      min-height: 18px;
+      margin: 10px 0 0;
+      color: var(--green);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .index-status[data-state="error"] { color: var(--error); }
+
+    .workflow {
+      margin-top: 39px;
+      padding-top: 20px;
+      border-top: 1px solid var(--line);
+    }
+
+    .workflow ol {
+      display: grid;
+      gap: 17px;
+      margin: 18px 0 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .workflow li {
+      display: grid;
+      grid-template-columns: 22px 1fr;
+      align-items: start;
+      gap: 10px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.4;
+    }
+
+    .step-number {
+      display: grid;
+      place-items: center;
+      width: 22px;
+      height: 22px;
+      border: 1px solid #cbd4c9;
+      border-radius: 50%;
+      color: var(--green);
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .main-panel {
+      display: flex;
+      min-width: 0;
+      min-height: calc(100vh - 68px);
+      flex-direction: column;
+      padding: 30px clamp(22px, 5vw, 76px) 22px;
+      background: linear-gradient(135deg, rgba(251, 250, 246, .93), rgba(247, 247, 240, .87));
+    }
+
+    .main-heading {
+      width: 100%;
+      max-width: 850px;
+      margin: 0 auto;
+    }
+
+    .main-heading .eyebrow { margin-bottom: 9px; }
+
+    h1 {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 32px;
+      font-weight: 500;
+      line-height: 1.18;
+    }
+
+    .heading-copy {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .conversation {
+      flex: 1;
+      width: 100%;
+      max-width: 850px;
+      min-height: 300px;
+      margin: 26px auto 20px;
+      overflow: auto;
+      scrollbar-color: #c6d0c7 transparent;
+      scrollbar-width: thin;
+    }
+
+    .empty-state {
+      display: flex;
+      min-height: 100%;
+      flex-direction: column;
+      justify-content: center;
+      padding: 22px 0 38px;
+    }
+
+    .empty-rule {
+      width: 38px;
+      height: 3px;
+      margin-bottom: 19px;
+      background: var(--coral);
+    }
+
+    .empty-state h2 {
+      max-width: 550px;
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 30px;
+      font-weight: 500;
+      line-height: 1.2;
+    }
+
+    .empty-state > p {
+      max-width: 550px;
+      margin: 12px 0 24px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .suggestions {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      max-width: 680px;
+    }
+
+    .suggestion {
+      min-height: 55px;
+      padding: 12px 14px;
+      border: 1px solid var(--line);
+      border-radius: 3px;
+      background: rgba(255, 255, 255, .46);
+      color: var(--ink);
+      text-align: left;
+      font-size: 13px;
+      line-height: 1.4;
+      cursor: pointer;
+      transition: border-color .16s ease, background-color .16s ease;
+    }
+
+    .suggestion:hover { border-color: var(--green); background: var(--green-wash); }
+
+    .messages { display: grid; gap: 22px; padding: 6px 0 20px; }
+    .messages[hidden], .empty-state[hidden] { display: none; }
+
+    .message {
+      max-width: 90%;
+      padding: 15px 17px;
+      border: 1px solid var(--line);
+      border-radius: 3px;
+      background: var(--surface);
+      box-shadow: 0 4px 14px rgba(33, 52, 42, .035);
+    }
+
+    .message.user {
+      justify-self: end;
+      border-color: #cedbd0;
+      background: var(--green-wash);
+    }
+
+    .message-label {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--green);
+      font-size: 10px;
+      font-weight: 750;
+      text-transform: uppercase;
+    }
+
+    .message.user .message-label { color: var(--coral); }
+
+    .message-text {
+      margin: 0;
+      font-size: 14px;
+      line-height: 1.65;
+      overflow-wrap: anywhere;
+      white-space: pre-wrap;
+    }
+
+    .message-meta {
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .passages {
+      margin-top: 13px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .passages summary { padding-top: 11px; color: var(--green); cursor: pointer; font-weight: 700; }
+    .passages ul { display: grid; gap: 10px; padding-left: 18px; line-height: 1.5; }
+
+    .composer-wrap {
+      width: 100%;
+      max-width: 850px;
+      margin: 0 auto;
+    }
+
+    .composer {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-height: 62px;
+      padding: 8px 9px 8px 17px;
+      border: 1px solid #bfcac0;
+      border-radius: 4px;
+      background: #fffefa;
+      box-shadow: var(--shadow);
+    }
+
+    .composer:focus-within { border-color: var(--green); }
+
+    .composer input {
+      flex: 1;
+      min-width: 0;
+      height: 42px;
+      border: 0;
+      outline: 0;
+      background: transparent;
+      color: var(--ink);
+      font-size: 14px;
+    }
+
+    .composer input::placeholder { color: #87928b; }
+
+    .send-button {
+      min-width: 82px;
+      height: 42px;
+      padding: 0 16px;
+      border: 0;
+      border-radius: 3px;
+      background: var(--green);
+      color: white;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .send-button:hover:not(:disabled) { background: #254b38; }
+    .send-button:disabled { cursor: wait; opacity: .58; }
+
+    .footnote {
+      margin: 10px 2px 0;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.45;
+    }
+
+    @media (max-width: 760px) {
+      .topbar { height: 60px; padding: 0 18px; }
+      .brand-subtitle { display: none; }
+      .workspace { display: block; min-height: calc(100vh - 60px); }
+      .sidebar { padding: 16px 18px; border-right: 0; border-bottom: 1px solid var(--line); }
+      .sidebar .eyebrow { margin-bottom: 7px; }
+      .source-title { font-size: 20px; }
+      .source-meta { margin: 5px 0 11px; }
+      .source-row { display: none; }
+      .index-button { width: auto; min-width: 145px; min-height: 38px; margin-top: 0; }
+      .index-note { display: inline-block; max-width: 190px; margin: 0 0 0 10px; vertical-align: middle; }
+      .index-status { margin-top: 6px; }
+      .workflow { display: none; }
+      .main-panel { min-height: calc(100vh - 235px); padding: 23px 18px 17px; }
+      .conversation { min-height: 230px; margin: 19px auto 14px; }
+      .empty-state { justify-content: flex-start; padding: 24px 0; }
+      .empty-state h2 { font-size: 26px; }
+      .suggestions { grid-template-columns: 1fr; }
+      .message { max-width: 100%; }
+    }
+
+    @media (max-width: 390px) {
+      .connection { font-size: 12px; }
+      .brand-name { font-size: 13px; }
+      .index-note { display: block; max-width: none; margin: 8px 0 0; }
+      .main-panel { min-height: calc(100vh - 255px); }
+      .composer { gap: 7px; padding-left: 11px; }
+      .send-button { min-width: 66px; padding: 0 10px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="Fieldnotes home">
+      <span class="brand-mark" aria-hidden="true">F</span>
+      <span><span class="brand-name">FIELDNOTES</span><span class="brand-subtitle">/ Agentic AI</span></span>
+    </a>
+    <div class="connection" id="connection" data-state="checking" role="status" aria-live="polite">
+      <span class="connection-dot" aria-hidden="true"></span>
+      <span id="connectionText">Checking API</span>
+    </div>
+  </header>
+
+  <div class="workspace">
+    <aside class="sidebar" aria-label="Knowledge base controls">
+      <p class="eyebrow">Knowledge base</p>
+      <h2 class="source-title">Agentic AI<br>eBook</h2>
+      <p class="source-meta">A source-grounded assistant for the ideas and systems in the book.</p>
+
+      <div class="source-row">
+        <span class="file-mark" aria-hidden="true">PDF</span>
+        <span><strong>Agentic AI</strong><span>Indexed on demand</span></span>
+      </div>
+
+      <button class="index-button" id="indexButton" type="button">Index source</button>
+      <p class="index-note">Downloads the eBook and sends text to OpenAI and Pinecone. API usage may incur charges.</p>
+      <p class="index-status" id="indexStatus" role="status" aria-live="polite"></p>
+
+      <section class="workflow" aria-label="Retrieval workflow">
+        <p class="eyebrow">Answer path</p>
+        <ol>
+          <li><span class="step-number">1</span><span>Retrieve relevant passages</span></li>
+          <li><span class="step-number">2</span><span>Draft from source evidence</span></li>
+          <li><span class="step-number">3</span><span>Check answer grounding</span></li>
+        </ol>
+      </section>
+    </aside>
+
+    <main class="main-panel">
+      <div class="main-heading">
+        <p class="eyebrow">Knowledge assistant</p>
+        <h1>Ask the source.</h1>
+        <p class="heading-copy">Answers are limited to relevant evidence from the Agentic AI eBook.</p>
+      </div>
+
+      <section class="conversation" id="conversation" aria-label="Conversation">
+        <div class="empty-state" id="emptyState">
+          <span class="empty-rule" aria-hidden="true"></span>
+          <h2>Start with a question.</h2>
+          <p>Explore a concept, compare approaches, or ask what the book says about a specific use case.</p>
+          <div class="suggestions" aria-label="Suggested questions">
+            <button class="suggestion" type="button">What defines an agentic AI system?</button>
+            <button class="suggestion" type="button">How is agentic AI different from a chatbot?</button>
+            <button class="suggestion" type="button">What challenges does the eBook mention?</button>
+            <button class="suggestion" type="button">What are the main system components?</button>
+          </div>
+        </div>
+        <div class="messages" id="messages" role="log" aria-live="polite" hidden></div>
+      </section>
+
+      <div class="composer-wrap">
+        <form class="composer" id="chatForm">
+          <input id="query" name="query" type="text" maxlength="2000" autocomplete="off" placeholder="Ask a question about the eBook..." aria-label="Your question" required>
+          <button class="send-button" id="sendButton" type="submit">Ask</button>
+        </form>
+        <p class="footnote">Responses are grounded in retrieved text. The confidence score is a retrieval and grounding heuristic, not a probability.</p>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const connection = document.getElementById('connection');
+    const connectionText = document.getElementById('connectionText');
+    const indexButton = document.getElementById('indexButton');
+    const indexStatus = document.getElementById('indexStatus');
+    const chatForm = document.getElementById('chatForm');
+    const queryInput = document.getElementById('query');
+    const sendButton = document.getElementById('sendButton');
+    const emptyState = document.getElementById('emptyState');
+    const messages = document.getElementById('messages');
+    const conversation = document.getElementById('conversation');
+
+    async function refreshHealth() {
+      try {
+        const response = await fetch('/health', { cache: 'no-store' });
+        if (!response.ok) throw new Error('API unavailable');
+        connection.dataset.state = 'online';
+        connectionText.textContent = 'API online';
+      } catch {
+        connection.dataset.state = 'offline';
+        connectionText.textContent = 'API unavailable';
+      }
+    }
+
+    function makeMessage(kind, label, text) {
+      const article = document.createElement('article');
+      article.className = `message ${kind}`;
+      const heading = document.createElement('span');
+      heading.className = 'message-label';
+      heading.textContent = label;
+      const body = document.createElement('p');
+      body.className = 'message-text';
+      body.textContent = text;
+      article.append(heading, body);
+      messages.append(article);
+      emptyState.hidden = true;
+      messages.hidden = false;
+      conversation.scrollTop = conversation.scrollHeight;
+      return article;
+    }
+
+    function showAnswer(article, result) {
+      const body = article.querySelector('.message-text');
+      body.textContent = result.final_answer;
+
+      const meta = document.createElement('p');
+      meta.className = 'message-meta';
+      meta.textContent = `Grounding heuristic: ${Number(result.confidence_score).toFixed(2)}`;
+      article.append(meta);
+
+      if (Array.isArray(result.retrieved_context_chunks) && result.retrieved_context_chunks.length) {
+        const details = document.createElement('details');
+        details.className = 'passages';
+        const summary = document.createElement('summary');
+        summary.textContent = `View retrieved passages (${result.retrieved_context_chunks.length})`;
+        const list = document.createElement('ul');
+        for (const passage of result.retrieved_context_chunks) {
+          const item = document.createElement('li');
+          item.textContent = passage;
+          list.append(item);
+        }
+        details.append(summary, list);
+        article.append(details);
+      }
+      conversation.scrollTop = conversation.scrollHeight;
+    }
+
+    async function askQuestion(question) {
+      const query = question.trim();
+      if (!query || sendButton.disabled) return;
+
+      makeMessage('user', 'You', query);
+      queryInput.value = '';
+      sendButton.disabled = true;
+      queryInput.disabled = true;
+      const pending = makeMessage('assistant', 'Source answer', 'Searching the indexed passages...');
+
+      try {
+        const response = await fetch('/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query })
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.detail || `Request failed (${response.status})`);
+        showAnswer(pending, result);
+      } catch (error) {
+        pending.querySelector('.message-label').textContent = 'Request failed';
+        pending.querySelector('.message-text').textContent = error.message || 'The request could not be completed.';
+        pending.setAttribute('role', 'alert');
+      } finally {
+        sendButton.disabled = false;
+        queryInput.disabled = false;
+        queryInput.focus();
+      }
+    }
+
+    chatForm.addEventListener('submit', event => {
+      event.preventDefault();
+      askQuestion(queryInput.value);
+    });
+
+    document.querySelectorAll('.suggestion').forEach(button => {
+      button.addEventListener('click', () => askQuestion(button.textContent));
+    });
+
+    indexButton.addEventListener('click', async () => {
+      const confirmed = window.confirm('Indexing downloads the eBook and sends content to OpenAI and Pinecone. API usage may incur charges. Continue?');
+      if (!confirmed) return;
+
+      indexButton.disabled = true;
+      indexButton.textContent = 'Indexing...';
+      indexStatus.dataset.state = 'pending';
+      indexStatus.textContent = 'Downloading, embedding, and indexing the source...';
+      try {
+        const response = await fetch('/ingest', { method: 'POST' });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.detail || `Indexing failed (${response.status})`);
+        indexStatus.dataset.state = 'success';
+        indexStatus.textContent = `Indexed ${result.chunks_indexed} chunks.`;
+      } catch (error) {
+        indexStatus.dataset.state = 'error';
+        indexStatus.textContent = error.message || 'Indexing failed. Check the API logs.';
+      } finally {
+        indexButton.disabled = false;
+        indexButton.textContent = 'Index source';
+      }
+    });
+
+    refreshHealth();
+    window.setInterval(refreshHealth, 30000);
+  </script>
+</body>
+</html>
