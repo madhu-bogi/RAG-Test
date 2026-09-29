@@ -281,3 +281,7 @@ The included tests validate request/response models and the refusal contract. Fu
 - [x] FastAPI API
 - [x] Structured JSON response
 - [x] Tests
+
+
+## Live Demo / Deployed Link
+[Click here to access the app](https://rag-test-uwuj.onrender.com)
